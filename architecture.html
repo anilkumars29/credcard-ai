@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CredCard AI System Architecture Diagram</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; padding: 40px; text-align: center; }
+        .grid { display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 50px; }
+        .box { background: white; border: 2px solid #cbd5e1; border-radius: 8px; padding: 20px; width: 220px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .frontend { border-top: 6px solid #2563eb; }
+        .backend { border-top: 6px solid #059669; }
+        .ai-core { border-top: 6px solid #7c3aed; }
+        .arrow { font-size: 24px; color: #94a3b8; font-weight: bold; }
+        h3 { margin-top: 0; color: #1e293b; }
+        ul { text-align: left; padding-left: 20px; font-size: 13px; color: #475569; }
+    </style>
+</head>
+<body>
+    <h2>🛡️ CredCard AI: Layered Data Flow Architecture</h2>
+    <p>Visual mapping of the production-grade modules we built across your local workspace.</p>
+
+    <div class="grid">
+        <!-- FRONTEND LAYER -->
+        <div class="box frontend">
+            <h3>🖥️ Presentation View</h3>
+            <p style="font-size: 12px; font-weight: bold; color: #2563eb;">templates/index.html</p>
+            <ul>
+                <li>Manual Entry Mode</li>
+                <li>Profile Selector JSON</li>
+                <li>Chat Box Layout</li>
+                <li>Memo Trigger Button</li>
+            </ul>
+        </div>
+
+        <div class="arrow">➔<br><span style="font-size:11px;color:#94a3b8;">Fetch POST</span></div>
+
+        <!-- BACKEND ORCHESTRATOR -->
+        <div class="box backend">
+            <h3>⚙️ Server & Compute</h3>
+            <p style="font-size: 12px; font-weight: bold; color: #059669;">app_flask.py <br>& scoring_engine.py</p>
+            <ul>
+                <li>Algebraic Scoring Math</li>
+                <li>History Trimming Window</li>
+                <li>ReportLab PDF Compiler</li>
+                <li>Flask Route Handlers</li>
+            </ul>
+        </div>
+
+        <div class="arrow">➔<br><span style="font-size:11px;color:#94a3b8;">Port 11434</span></div>
+
+        <!-- AI LAYER -->
+        <div class="box ai-core">
+            <h3>🤖 Private LLM Core</h3>
+            <p style="font-size: 12px; font-weight: bold; color: #7c3aed;">ai_engine.py <br>& Ollama System</p>
+            <ul>
+                <li>llama3.2:latest Model</li>
+                <li>ai_training.py Rules</li>
+                <li>Upfront Advocacy Brief</li>
+                <li>Memory Multi-Turn Chat</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

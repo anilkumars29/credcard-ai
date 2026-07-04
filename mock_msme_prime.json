@@ -1,0 +1,98 @@
+{
+    "application_metadata": {
+        "company_name": "Vanguard Engineering",
+        "industry_type": "Precision Manufacturing",
+        "evaluation_timestamp": "2026-07-01T14:49:16.483206",
+        "target_persona_test": "prime"
+    },
+    "ecosystem_inputs": {
+        "gstn": {
+            "provider": "GSTN_API_GATEWAY",
+            "status": "SUCCESS",
+            "data": {
+                "gstin": "29AAAAX1234X1Z",
+                "filing_history": [
+                    {
+                        "period": "2026-05",
+                        "gross_turnover": 1200000.0,
+                        "filing_delay_days": 0
+                    },
+                    {
+                        "period": "2026-04",
+                        "gross_turnover": 1150000.0,
+                        "filing_delay_days": 0
+                    },
+                    {
+                        "period": "2026-03",
+                        "gross_turnover": 1300000.0,
+                        "filing_delay_days": 0
+                    }
+                ]
+            }
+        },
+        "account_aggregator": {
+            "provider": "ACCOUNT_AGGREGATOR_NETWORK",
+            "consent_id": "aa-consent-uuid-998877",
+            "data": {
+                "account_summary": {
+                    "account_type": "CURRENT",
+                    "three_month_inflow": 3650000.0,
+                    "average_monthly_balance": 150000.0
+                },
+                "upi_merchant_analytics": {
+                    "total_transaction_count": 2098,
+                    "failed_or_reversed_technical_bounces": 2,
+                    "daily_cash_flow_variance_percentage": 12
+                }
+            }
+        },
+        "epfo": {
+            "provider": "EPFO_UAN_GATEWAY",
+            "status": "AUTHENTICATED",
+            "data": {
+                "establishment_id": "BG/BAN/0012345/000",
+                "historical_contributions": [
+                    {
+                        "wage_month": "2026-05",
+                        "member_count": 45,
+                        "amount_deposited": 81000
+                    },
+                    {
+                        "wage_month": "2026-04",
+                        "member_count": 46,
+                        "amount_deposited": 82800
+                    },
+                    {
+                        "wage_month": "2026-03",
+                        "member_count": 47,
+                        "amount_deposited": 84600
+                    }
+                ]
+            }
+        },
+        "discom": {
+            "provider": "DISCOM_UTILITY_BHARAT_BILLPAY",
+            "data": {
+                "consumer_number": "1029384756",
+                "utility_provider": "BESCOM_BANGALORE",
+                "billing_history": [
+                    {
+                        "bill_period": "2026-05",
+                        "consumption_kwh": 5000,
+                        "payment_status": "PAID"
+                    },
+                    {
+                        "bill_period": "2026-04",
+                        "consumption_kwh": 5200,
+                        "payment_status": "PAID"
+                    },
+                    {
+                        "bill_period": "2026-03",
+                        "consumption_kwh": 5500,
+                        "payment_status": "PAID"
+                    }
+                ]
+            }
+        }
+    }
+}

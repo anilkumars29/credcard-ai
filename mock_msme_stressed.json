@@ -1,0 +1,98 @@
+{
+    "application_metadata": {
+        "company_name": "Royal Weaving Unit",
+        "industry_type": "Textile Mill",
+        "evaluation_timestamp": "2026-07-01T14:49:32.112741",
+        "target_persona_test": "stressed"
+    },
+    "ecosystem_inputs": {
+        "gstn": {
+            "provider": "GSTN_API_GATEWAY",
+            "status": "SUCCESS",
+            "data": {
+                "gstin": "29AAAAX1234X1Z",
+                "filing_history": [
+                    {
+                        "period": "2026-05",
+                        "gross_turnover": 600000.0,
+                        "filing_delay_days": 18
+                    },
+                    {
+                        "period": "2026-04",
+                        "gross_turnover": 575000.0,
+                        "filing_delay_days": 25
+                    },
+                    {
+                        "period": "2026-03",
+                        "gross_turnover": 650000.0,
+                        "filing_delay_days": 30
+                    }
+                ]
+            }
+        },
+        "account_aggregator": {
+            "provider": "ACCOUNT_AGGREGATOR_NETWORK",
+            "consent_id": "aa-consent-uuid-998877",
+            "data": {
+                "account_summary": {
+                    "account_type": "CURRENT",
+                    "three_month_inflow": 1825000.0,
+                    "average_monthly_balance": 75000.0
+                },
+                "upi_merchant_analytics": {
+                    "total_transaction_count": 2765,
+                    "failed_or_reversed_technical_bounces": 27,
+                    "daily_cash_flow_variance_percentage": 85
+                }
+            }
+        },
+        "epfo": {
+            "provider": "EPFO_UAN_GATEWAY",
+            "status": "AUTHENTICATED",
+            "data": {
+                "establishment_id": "BG/BAN/0012345/000",
+                "historical_contributions": [
+                    {
+                        "wage_month": "2026-05",
+                        "member_count": 18,
+                        "amount_deposited": 32400
+                    },
+                    {
+                        "wage_month": "2026-04",
+                        "member_count": 14,
+                        "amount_deposited": 25200
+                    },
+                    {
+                        "wage_month": "2026-03",
+                        "member_count": 10,
+                        "amount_deposited": 18000
+                    }
+                ]
+            }
+        },
+        "discom": {
+            "provider": "DISCOM_UTILITY_BHARAT_BILLPAY",
+            "data": {
+                "consumer_number": "1029384756",
+                "utility_provider": "BESCOM_BANGALORE",
+                "billing_history": [
+                    {
+                        "bill_period": "2026-05",
+                        "consumption_kwh": 3500,
+                        "payment_status": "PAID"
+                    },
+                    {
+                        "bill_period": "2026-04",
+                        "consumption_kwh": 1800,
+                        "payment_status": "PAID"
+                    },
+                    {
+                        "bill_period": "2026-03",
+                        "consumption_kwh": 400,
+                        "payment_status": "OVERDUE"
+                    }
+                ]
+            }
+        }
+    }
+}
