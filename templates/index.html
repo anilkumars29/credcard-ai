@@ -264,6 +264,7 @@ background: rgba(248,249,250,0.88);
         }
 
         // Upgraded JavaScript chat handler for multi-turn interactive conversations
+        // 2. UPDATE THIS FUNCTION TO TALK DIRECTLY TO THE USER'S LOCAL OLLAMA APIS
         async function fireQueryToAI() {
             const inputField = document.getElementById("chatInput");
             const outputBlock = document.getElementById("chatOutput");
@@ -271,67 +272,52 @@ background: rgba(248,249,250,0.88);
             
             if (!userQuery) return;
             
-            // Append the user's message to the UI instantly while waiting for the LLM
             outputBlock.innerHTML += `<div style="margin-bottom:15px; color:#2563eb;"><strong>💬 Relationship Manager:</strong> ${userQuery}</div>`;
-            inputField.value = ""; // Clear input box for next follow-up
+            inputField.value = "";
             
             const dynamicLoadingDiv = document.createElement("div");
             dynamicLoadingDiv.id = "ai-loading-state";
             dynamicLoadingDiv.style.color = "#64748b";
-            dynamicLoadingDiv.innerText = "🤖 Underwriter Core thinking...";
+            dynamicLoadingDiv.innerText = "🤖 Local Underwriter Core thinking...";
             outputBlock.appendChild(dynamicLoadingDiv);
 
-            const payload = {
-                query: userQuery,
-                metrics: {
-                    name: document.getElementById("lblComp").innerText,
-                    score: document.getElementById("lblScore").innerText,
-                    percentage: document.getElementById("lblPct").innerText,
-                    inputs: {
-                        gst: document.getElementById("gstDelay").value,
-                        upi: document.getElementById("upiVar").value,
-                        staff: document.getElementById("staffDelta").value,
-                        power: document.getElementById("powerDelta").value
-                    }
-                }
+            // TARGET PAYLOAD STRUCTURE MATCHING LOCAL OLLAMA NATIVE SPECIFICATION
+            const localOllamaPayload = {
+                model: "llama3.2:latest",
+                messages: [
+                    { role: "system", content: "You are an expert corporate bank credit underwriter analyzing an MSME. Be direct." },
+                    { role: "user", content: `Review this applicant context. Company Score is ${document.getElementById("lblScore").innerText}. User Query: ${userQuery}` }
+                ],
+                stream: false
             };
 
-            const response = await fetch('/query_ai', {
+            try {
+                // We hit the user's localhost port directly from their own browser frame!
+                const response = await fetch('http://localhost:11434/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localOllamaPayload)
+                });
+                const data = await response.json();
+                document.getElementById("ai-loading-state").remove();
 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            
-            // Remove loading indicator
-            document.getElementById("ai-loading-state").remove();
+                let aiText = data.message && data.message.content ? data.message.content : '';
+                aiText = String(aiText);
 
-            if (data.status === "success") {
-                // Enable expand only after first real AI question/response
+                let structuredOutput = aiText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+
+                // Enable expand after first question
                 const btn = document.getElementById('expandChatBtn');
                 if (btn) btn.disabled = false;
 
-                // Wipe screen and redraw the full running dialogue thread beautifully
-                outputBlock.innerHTML = "";
-
-                
-                // Skip rendering systemic messages, only show user and assistant interactions
-                data.history.forEach(msg => {
-                    if (msg.role === "user" && !msg.content.includes("Applicant Dossier")) {
-                        outputBlock.innerHTML += `<div style="margin-bottom:15px; color:#2563eb;"><strong>💬 Relationship Manager:</strong> ${msg.content}</div>`;
-                    } else if (msg.role === "assistant" && !msg.content.includes("Ingested successfully")) {
-                        let structuredOutput = msg.content
-                            .replace(/\*\*(.*?)\*\//g, '<strong>$1</strong>') 
-                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        outputBlock.innerHTML += `<div style="margin-bottom:20px; background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:6px;"><strong>🤖 Qwen Underwriter Core:</strong><br>${structuredOutput}</div>`;
-                    }
-                });
-                
-                // Auto scroll to the absolute bottom of the chat container
+                outputBlock.innerHTML += `<div style="margin-bottom:20px; background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:6px;"><strong>🤖 Local Qwen Underwriter Core:</strong><br>${structuredOutput}</div>`;
                 outputBlock.scrollTop = outputBlock.scrollHeight;
-            } else {
-                outputBlock.innerHTML += `<div style="color:#ef4444;">${data.response}</div>`;
+
+            } catch (error) {
+                document.getElementById("ai-loading-state").remove();
+                outputBlock.innerHTML += `<div style="color:#ef4444;">⚠️ Local Ollama Node Unreachable. Run 'ollama run llama3.2' in terminal to link your host hardware to this cloud application.</div>`;
             }
         }
 
