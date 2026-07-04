@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IDBI MSME Credit Core</title>
+    <style>
+        :root{
+            --maroon:#1F0104;
+            --blue:#C8D7F6;
+            --offwhite:#F8F9FA;
+            --lightgray:#B9BDC7;
+            --gold:#EA940C;
+            --cardBorder: rgba(200,215,246,0.22);
+            --cardShadow: 0 10px 30px rgba(31,1,4,0.10);
+        }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--offwhite); margin: 0; padding: 20px; color: var(--maroon); }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .panel {
+            background: rgba(255,255,255,0.75);
+            border: 1px solid var(--cardBorder);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--cardShadow);
+            backdrop-filter: blur(6px);
+        }
+        h1 { letter-spacing: 0.2px; }
+        h2, h3 { margin-top: 0; color: var(--maroon); }
+        label { display: block; margin: 10px 0 5px; font-weight: 700; font-size: 13px; color: rgba(31,1,4,0.85); }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(31,1,4,0.12);
+            border-radius: 10px;
+            box-sizing: border-box;
+            background: rgba(248,249,250,0.9);
+            color: var(--maroon);
+            outline: none;
+            transition: box-shadow 180ms ease, border-color 180ms ease;
+        }
+        input:focus, select:focus{
+            border-color: rgba(234,148,12,0.6);
+            box-shadow: 0 0 0 4px rgba(234,148,12,0.18);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--maroon);
+            color: var(--offwhite);
+            border: none;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 120ms ease, background 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+            box-shadow: 0 8px 22px rgba(31,1,4,0.18);
+        }
+        button:hover { background: #2b0509; transform: translateY(-1px); }
+        button:disabled { opacity: 0.55; transform: none; box-shadow: none; }
+
+        .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+        .metric-card {
+            background: rgba(200,215,246,0.22);
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(200,215,246,0.25);
+        }
+        .metric-val { font-size: 20px; font-weight: 900; color: var(--gold); margin-top: 6px; }
+        .verdict-box { padding: 15px; border-radius: 12px; font-weight: 900; margin-bottom: 20px; text-align: center; transition: all 0.3s; }
+        .chat-area {
+            margin-top: 20px;
+background: rgba(248,249,250,0.88);
+            border: 1px solid rgba(31,1,4,0.10);
+            color: var(--maroon);
+            padding: 15px;
+            border-radius: 12px;
+            min-height: 150px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .action-btn {
+            width: auto !important;
+        }
+
+        .pill {
+            display:inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(200,215,246,0.25);
+            background: rgba(200,215,246,0.15);
+            font-size: 12px;
+            font-weight: 800;
+            color: rgba(31,1,4,0.85);
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center; color:var(--maroon);">🛡️ CredCard AI: Financial Health Platform</h1>
+    <hr style="border:1px solid rgba(31,1,4,0.10); margin-bottom:30px;">
+
+    <div class="container">
+        <div class="panel">
+            <h2>🔌 Ingestion Mode</h2>
+            <select id="profileMode" onchange="loadProfileData()">
+                <option value="manual">🛠️ Manual Judge Entry Mode</option>
+                <option value="prime">📄 Load Prime Profile (JSON)</option>
+                <option value="volatile">📄 Load Volatile Profile (JSON)</option>
+                <option value="stressed">📄 Load Stressed Profile (JSON)</option>
+            </select>
+            <hr>
+            <h3>📊 Telemetry Metrics</h3>
+            <label>Entity Legal Name</label><input type="text" id="compName" value="Custom Enterprise Test Unit">
+            <label>GST Filing Delays (Days)</label><input type="number" id="gstDelay" value="12">
+            <label>UPI Inflow Variance %</label><input type="number" id="upiVar" value="35">
+            <label>Net Employee Growth</label><input type="number" id="staffDelta" value="-2">
+            <label>Power Slope (kWh Delta)</label><input type="number" id="powerDelta" value="-600">
+            <button onclick="runAppCalculation()">Calculate Credit Core</button>
+        </div>
+
+        <div class="panel">
+            <div id="verdictBanner" class="verdict-box">INITIALIZING CALCULATOR MODULE...</div>
+            
+            <div class="metric-grid">
+                <div class="metric-card"><div>Trading Entity</div><div id="lblComp" class="metric-val">-</div></div>
+                <div class="metric-card"><div>Credit Health Score</div><div id="lblScore" class="metric-val">-</div></div>
+                <div class="metric-card"><div>Integrity Density</div><div id="lblPct" class="metric-val">-</div></div>
+            </div>
+
+<div style="background: rgba(200,215,246,0.20); border: 1px dashed rgba(31,1,4,0.20); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 5px 0; color: #166534; display: flex; align-items: center; gap: 5px;">
+                    ✨ Automated Underwriter Advocacy Brief
+                </h4>
+                <div id="aiUpfrontBrief" style="font-size: 14px; color: #1e293b; line-height: 1.5;">
+                    Analyzing corporate telemetry arrays...
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <button id="pdfExportBtn" onclick="triggerPdfExport()" disabled style="background: #1e3a8a40; width: auto; padding: 12px 24px; display: flex; align-items: center; gap: 8px; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: not-allowed;">
+                        📄 Export Formal Sanction Memo (PDF)
+                    </button>
+                </div>
+            </div>
+
+            <hr>
+            <h2>🤖 Proprietary Credit Assistant</h2>
+
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div id="chatOutput" class="chat-area" style="flex:1; max-height: 260px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #cbd5e1; background: #f8fafc; padding: 15px; border-radius: 6px;">
+                    AI outputs display here...
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <button id="expandChatBtn" onclick="toggleChatSize()" disabled style="width: 44px; padding: 10px 0;">⤢</button>
+                </div>
+            </div>
+
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="chatInput" placeholder="Ask a question..." style="flex: 1; margin-bottom: 0; padding: 12px;">
+                <button onclick="fireQueryToAI()" style="background: #059669; width: auto; padding: 12px 24px; white-space: nowrap; margin-bottom: 0;">Query AI Engine</button>
+            </div>
+
+            <div style="text-align: right; margin-top: 8px;">
+                <a href="#" onclick="resetActiveConversation(); return false;" style="color: #64748b; font-size: 12px; text-decoration: none;">🔄 Reset Conversation History</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mockProfiles = {
+            prime: { name: "Vanguard Engineering", gst: 0, upi: 12, staff: 2, power: 500 },
+            volatile: { name: "Balaji Logistics", gst: 6, upi: 42, staff: -1, power: 800 },
+            stressed: { name: "Royal Weaving Unit", gst: 24, upi: 85, staff: -8, power: -3100 }
+        };
+
+        function loadProfileData() {
+            const selectMode = document.getElementById("profileMode").value;
+            const elements = ["compName", "gstDelay", "upiVar", "staffDelta", "powerDelta"];
+            
+            if(selectMode !== "manual") {
+                const data = mockProfiles[selectMode];
+                document.getElementById("compName").value = data.name;
+                document.getElementById("gstDelay").value = data.gst;
+                document.getElementById("upiVar").value = data.upi;
+                document.getElementById("staffDelta").value = data.staff;
+                document.getElementById("powerDelta").value = data.power;
+                
+                elements.forEach(id => document.getElementById(id).disabled = true);
+                runAppCalculation();
+            } else {
+                elements.forEach(id => document.getElementById(id).disabled = false);
+            }
+        }
+
+        async function runAppCalculation() {
+            const payload = {
+                gst_delay: document.getElementById("gstDelay").value,
+                upi_var: document.getElementById("upiVar").value,
+                staff_delta: document.getElementById("staffDelta").value,
+                power_delta: document.getElementById("powerDelta").value
+            };
+
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+
+            const banner = document.getElementById("verdictBanner");
+            banner.innerText = `UNDERWRITING DECISION: ${data.verdict}\n(${data.description})`;
+            banner.style.background = data.theme.bg;
+            banner.style.color = data.theme.text;
+
+            document.getElementById("lblComp").innerText = document.getElementById("compName").value;
+            document.getElementById("lblScore").innerText = data.credit_score;
+            document.getElementById("lblPct").innerText = data.percentage;
+
+            // NEW: Automatically trigger the upfront advocacy wording generation
+            const briefPromise = fetchUpfrontAIBrief(data, payload);
+            // Export becomes available only after the brief is generated
+            briefPromise.then(() => {
+                const btn = document.getElementById('pdfExportBtn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.cursor = 'pointer';
+                    btn.style.background = '#1e3a8a';
+                }
+            }).catch(() => {
+                const btn = document.getElementById('pdfExportBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.background = '#1e3a8a40';
+                }
+            });
+        }
+
+        // Helper function to call the upfront generator route
+        async function fetchUpfrontAIBrief(scoredData, rawInputs) {
+            const briefBox = document.getElementById("aiUpfrontBrief");
+            briefBox.innerText = "Generating live operational narrative...";
+
+            const payload = {
+                name: document.getElementById("lblComp").innerText,
+                score: scoredData.credit_score,
+                verdict: scoredData.verdict,
+                inputs: rawInputs
+            };
+
+            try {
+                const response = await fetch('/generate_upfront_brief', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                briefBox.innerHTML = data.brief;
+            } catch (error) {
+                briefBox.innerText = "Failed to compile upfront AI brief.";
+            }
+        }
+
+        // Upgraded JavaScript chat handler for multi-turn interactive conversations
+        async function fireQueryToAI() {
+            const inputField = document.getElementById("chatInput");
+            const outputBlock = document.getElementById("chatOutput");
+            const userQuery = inputField.value.trim();
+            
+            if (!userQuery) return;
+            
+            // Append the user's message to the UI instantly while waiting for the LLM
+            outputBlock.innerHTML += `<div style="margin-bottom:15px; color:#2563eb;"><strong>💬 Relationship Manager:</strong> ${userQuery}</div>`;
+            inputField.value = ""; // Clear input box for next follow-up
+            
+            const dynamicLoadingDiv = document.createElement("div");
+            dynamicLoadingDiv.id = "ai-loading-state";
+            dynamicLoadingDiv.style.color = "#64748b";
+            dynamicLoadingDiv.innerText = "🤖 Underwriter Core thinking...";
+            outputBlock.appendChild(dynamicLoadingDiv);
+
+            const payload = {
+                query: userQuery,
+                metrics: {
+                    name: document.getElementById("lblComp").innerText,
+                    score: document.getElementById("lblScore").innerText,
+                    percentage: document.getElementById("lblPct").innerText,
+                    inputs: {
+                        gst: document.getElementById("gstDelay").value,
+                        upi: document.getElementById("upiVar").value,
+                        staff: document.getElementById("staffDelta").value,
+                        power: document.getElementById("powerDelta").value
+                    }
+                }
+            };
+
+            const response = await fetch('/query_ai', {
+
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            
+            // Remove loading indicator
+            document.getElementById("ai-loading-state").remove();
+
+            if (data.status === "success") {
+                // Enable expand only after first real AI question/response
+                const btn = document.getElementById('expandChatBtn');
+                if (btn) btn.disabled = false;
+
+                // Wipe screen and redraw the full running dialogue thread beautifully
+                outputBlock.innerHTML = "";
+
+                
+                // Skip rendering systemic messages, only show user and assistant interactions
+                data.history.forEach(msg => {
+                    if (msg.role === "user" && !msg.content.includes("Applicant Dossier")) {
+                        outputBlock.innerHTML += `<div style="margin-bottom:15px; color:#2563eb;"><strong>💬 Relationship Manager:</strong> ${msg.content}</div>`;
+                    } else if (msg.role === "assistant" && !msg.content.includes("Ingested successfully")) {
+                        let structuredOutput = msg.content
+                            .replace(/\*\*(.*?)\*\//g, '<strong>$1</strong>') 
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        outputBlock.innerHTML += `<div style="margin-bottom:20px; background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:6px;"><strong>🤖 Qwen Underwriter Core:</strong><br>${structuredOutput}</div>`;
+                    }
+                });
+                
+                // Auto scroll to the absolute bottom of the chat container
+                outputBlock.scrollTop = outputBlock.scrollHeight;
+            } else {
+                outputBlock.innerHTML += `<div style="color:#ef4444;">${data.response}</div>`;
+            }
+        }
+
+        async function resetActiveConversation() {
+            await fetch('/reset_chat', { method: 'POST' });
+            document.getElementById("chatOutput").innerHTML = "Conversation history cleared. New session initialized.";
+        }
+
+        function toggleChatSize() {
+            const chat = document.getElementById('chatOutput');
+            const btn = document.getElementById('expandChatBtn');
+            if (!chat) return;
+
+            const isExpanded = chat.dataset.expanded === '1';
+            if (isExpanded) {
+                chat.style.maxHeight = '260px';
+                chat.dataset.expanded = '0';
+                if (btn) btn.textContent = '⤢';
+            } else {
+                chat.style.maxHeight = '520px';
+                chat.dataset.expanded = '1';
+                if (btn) btn.textContent = '⤡';
+            }
+        }
+
+        window.onload = function() {
+            loadProfileData();
+
+            const chatInput = document.getElementById('chatInput');
+            const btn = document.getElementById('expandChatBtn');
+            if (btn) {
+                btn.dataset.enabled = '0';
+            }
+
+            // Binds the "Enter" key to submit the prompt instantly
+            chatInput.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    fireQueryToAI();
+                }
+            });
+
+        };
+
+        // Trigger PDF export from anywhere (must be global, not inside window.onload)
+    async function triggerPdfExport() {
+        console.log("PDF Export Triggered!");
+
+        const verdictText = document.getElementById("verdictBanner").innerText || "";
+        const cleanVerdict = verdictText.replace("UNDERWRITING DECISION: ", "").split("\n")[0].trim();
+
+        const payload = {
+            metrics: {
+                name: document.getElementById("lblComp").innerText,
+                score: document.getElementById("lblScore").innerText,
+                percentage: document.getElementById("lblPct").innerText,
+                verdict: cleanVerdict,
+                inputs: {
+                    gst: document.getElementById("gstDelay").value,
+                    upi: document.getElementById("upiVar").value,
+                    staff: document.getElementById("staffDelta").value,
+                    power: document.getElementById("powerDelta").value
+                }
+            }
+        };
+
+        try {
+            const response = await fetch('/export_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                a.download = `Sanction_Memo_${payload.metrics.name.replace(/ /g, "_")}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+            } else {
+                alert("Backend failed to package structured underwriting document.");
+            }
+        } catch (error) {
+            console.error("Export Error:", error);
+            alert("Network error while generating PDF.");
+        }
+    };
+
+    </script>
+</body>
+</html>
