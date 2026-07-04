@@ -28,64 +28,22 @@ def calculate():
     )
     return jsonify(result)
 
-@app.route('/generate_upfront_brief', methods=['POST'])
-def generate_upfront_brief():
+@app.route('/sync_brief_to_history', methods=['POST'])
+def sync_brief_to_history():
+    """
+    🔗 Edge Execution Sync Pipeline:
+    Receives the locally-inferred brief text computed in the user's browser frame 
+    and directly appends it into server session memory. This guarantees the 
+    downstream ReportLab PDF compiler captures the precise narrative for print execution.
+    """
     global chat_history
     data = request.json
-
-    # 🎯 Endpoint to hit local machine instance
-    url = "http://127.0.0.1:11434/api/chat"
-
-    analysis_prompt = f"""
-    Provide a tight, maximum 2-sentence underwriting narrative explaining the core bottleneck or strength driving this score. Do not use generic introductory filler phrases.
-
-    Entity Name: {data['name']}
-    Assigned Score: {data['score']}
-    Verdict Label: {data['verdict']}
-    Raw Technical Inputs:
-    - GST Delay: {data['inputs']['gst_delay']} days
-    - UPI Variance: {data['inputs']['upi_var']}%
-    - Net Staff Delta: {data['inputs']['staff_delta']}
-    - Power Slope: {data['inputs']['power_delta']} kWh
-    """
-
-    payload = {
-        "model": "llama3.2:latest",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a professional credit underwriting officer detailing risk summaries upfront."
-            },
-            {
-                "role": "user",
-                "content": analysis_prompt
-            }
-        ],
-        "stream": False
-    }
-
-    headers = {"Content-Type": "application/json"}
-
-    try:
-        # Try to execute via local instance (works when running everything locally)
-        response = requests.post(url, json=payload, headers=headers, timeout=5)
-        if response.status_code == 200:
-            brief_text = response.json()["message"]["content"].strip()
-            chat_history.append({"role": "assistant", "content": brief_text})
-            return jsonify({"brief": brief_text})
-
-        return jsonify({"brief": "Operational metrics logged. Core summary generation paused."})
-
-    except Exception:
-        # ✅ FIX: Graceful fallback when hosted on the cloud (Render)
-        secure_fallback_brief = (
-            "🛡️ SECURITY POLICY ENFORCED: This platform is currently deployed on an edge cloud architecture. "
-            "The automated brief generation is isolated from cloud-side aggregation to protect sensitive operational metrics. "
-            "Please use the Proprietary Credit Assistant below to query your localized on-premise AI underwriting core safely."
-        )
-        # Append to history so PDF engine doesn't crash if they export immediately
-        chat_history.append({"role": "assistant", "content": secure_fallback_brief})
-        return jsonify({"brief": secure_fallback_brief})
+    brief_text = data.get('brief', '').strip()
+    
+    if brief_text:
+        chat_history.append({"role": "assistant", "content": brief_text})
+        return jsonify({"status": "success", "message": "Edge brief synchronized with server state memory."})
+    return jsonify({"status": "error", "message": "Null data payload rejected by state synchronization core."}), 400
 
 @app.route('/query_ai', methods=['POST'])
 def query_ai():

@@ -58,7 +58,7 @@
             box-shadow: 0 8px 22px rgba(31,1,4,0.18);
         }
         button:hover { background: #2b0509; transform: translateY(-1px); }
-        button:disabled { opacity: 0.55; transform: none; box-shadow: none; }
+        button:disabled { opacity: 0.55; transform: none; box-shadow: none; cursor: not-allowed !important;}
 
         .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
         .metric-card {
@@ -72,7 +72,7 @@
         .verdict-box { padding: 15px; border-radius: 12px; font-weight: 900; margin-bottom: 20px; text-align: center; transition: all 0.3s; }
         .chat-area {
             margin-top: 20px;
-background: rgba(248,249,250,0.88);
+            background: rgba(248,249,250,0.88);
             border: 1px solid rgba(31,1,4,0.10);
             color: var(--maroon);
             padding: 15px;
@@ -130,15 +130,15 @@ background: rgba(248,249,250,0.88);
                 <div class="metric-card"><div>Integrity Density</div><div id="lblPct" class="metric-val">-</div></div>
             </div>
 
-<div style="background: rgba(200,215,246,0.20); border: 1px dashed rgba(31,1,4,0.20); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="background: rgba(200,215,246,0.20); border: 1px dashed rgba(31,1,4,0.20); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <h4 style="margin: 0 0 5px 0; color: #166534; display: flex; align-items: center; gap: 5px;">
                     ✨ Automated Underwriter Advocacy Brief
                 </h4>
-                <div id="aiUpfrontBrief" style="font-size: 14px; color: #1e293b; line-height: 1.5;">
+                <div id="aiUpfrontBrief" style="font-size: 14px; color: #1e293b; line-height: 1.5; margin-bottom: 12px;">
                     Analyzing corporate telemetry arrays...
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <button id="pdfExportBtn" onclick="triggerPdfExport()" disabled style="background: #1e3a8a40; width: auto; padding: 12px 24px; display: flex; align-items: center; gap: 8px; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: not-allowed;">
+                <div>
+                    <button id="pdfExportBtn" onclick="triggerPdfExport()" disabled style="background: #1e3a8a40; width: auto; padding: 12px 24px; display: flex; align-items: center; gap: 8px; color: white; border: none; border-radius: 4px; font-weight: bold;">
                         📄 Export Formal Sanction Memo (PDF)
                     </button>
                 </div>
@@ -155,7 +155,6 @@ background: rgba(248,249,250,0.88);
                     <button id="expandChatBtn" onclick="toggleChatSize()" disabled style="width: 44px; padding: 10px 0;">⤢</button>
                 </div>
             </div>
-
 
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="chatInput" placeholder="Ask a question..." style="flex: 1; margin-bottom: 0; padding: 12px;">
@@ -218,53 +217,76 @@ background: rgba(248,249,250,0.88);
             document.getElementById("lblScore").innerText = data.credit_score;
             document.getElementById("lblPct").innerText = data.percentage;
 
-            // NEW: Automatically trigger the upfront advocacy wording generation
-            const briefPromise = fetchUpfrontAIBrief(data, payload);
-            // Export becomes available only after the brief is generated
-            briefPromise.then(() => {
-                const btn = document.getElementById('pdfExportBtn');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.style.cursor = 'pointer';
-                    btn.style.background = '#1e3a8a';
-                }
-            }).catch(() => {
-                const btn = document.getElementById('pdfExportBtn');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.style.cursor = 'not-allowed';
-                    btn.style.background = '#1e3a8a40';
-                }
-            });
+            // Trigger browser edge-loopback generation
+            fetchUpfrontAIBrief(data, payload)
+                .then(() => {
+                    const btn = document.getElementById('pdfExportBtn');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.cursor = 'pointer';
+                        btn.style.background = '#1e3a8a';
+                    }
+                }).catch(() => {
+                    const btn = document.getElementById('pdfExportBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.background = '#1e3a8a40';
+                    }
+                });
         }
 
-        // Helper function to call the upfront generator route
+        // REWRITTEN: Runs 100% locally on the browser to avoid Render server connection bounds
         async function fetchUpfrontAIBrief(scoredData, rawInputs) {
             const briefBox = document.getElementById("aiUpfrontBrief");
-            briefBox.innerText = "Generating live operational narrative...";
+            briefBox.innerHTML = `<span style="color:#64748b;">🤖 Local Node compiling operational telemetry narrative...</span>`;
 
-            const payload = {
-                name: document.getElementById("lblComp").innerText,
-                score: scoredData.credit_score,
-                verdict: scoredData.verdict,
-                inputs: rawInputs
+            const promptText = `Provide a tight, maximum 2-sentence underwriting narrative explaining the core bottleneck or strength driving this score. Do not use generic introductory filler phrases.
+
+            Entity Name: ${document.getElementById("lblComp").innerText}
+            Assigned Score: ${scoredData.credit_score}
+            Verdict Label: ${scoredData.verdict}
+            Raw Technical Inputs:
+            - GST Delay: ${rawInputs.gst_delay} days
+            - UPI Variance: ${rawInputs.upi_var}%
+            - Net Staff Delta: ${rawInputs.staff_delta}
+            - Power Slope: ${rawInputs.power_delta} kWh`;
+
+            const localOllamaPayload = {
+                model: "llama3.2:latest",
+                messages: [
+                    { role: "system", content: "You are a professional credit underwriting officer detailing risk summaries upfront." },
+                    { role: "user", content: promptText }
+                ],
+                stream: false
             };
 
             try {
-                const response = await fetch('/generate_upfront_brief', {
+                const response = await fetch('http://127.0.0.1:11434/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(localOllamaPayload)
                 });
-                const data = await response.json();
-                briefBox.innerHTML = data.brief;
+                
+                const jsonResponse = await response.json();
+                const briefText = jsonResponse.message.content.strip ? jsonResponse.message.content.strip() : jsonResponse.message.content.trim();
+                
+                briefBox.innerHTML = briefText;
+
+                // Sync brief payload straight back to Flask cloud cache so ReportLab can print it
+                await fetch('/sync_brief_to_history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ brief: briefText })
+                });
+
             } catch (error) {
-                briefBox.innerText = "Failed to compile upfront AI brief.";
+                console.error(error);
+                briefBox.innerHTML = `<span style="color:#ef4444;">⚠️ Local Node Unreachable. Open your background Ollama framework port to calculate telemetry briefs.</span>`;
+                throw error;
             }
         }
 
-        // Upgraded JavaScript chat handler for multi-turn interactive conversations
-        // 2. UPDATE THIS FUNCTION TO TALK DIRECTLY TO THE USER'S LOCAL OLLAMA APIS
         async function fireQueryToAI() {
             const inputField = document.getElementById("chatInput");
             const outputBlock = document.getElementById("chatOutput");
@@ -281,7 +303,6 @@ background: rgba(248,249,250,0.88);
             dynamicLoadingDiv.innerText = "🤖 Local Underwriter Core thinking...";
             outputBlock.appendChild(dynamicLoadingDiv);
 
-            // TARGET PAYLOAD STRUCTURE MATCHING LOCAL OLLAMA NATIVE SPECIFICATION
             const localOllamaPayload = {
                 model: "llama3.2:latest",
                 messages: [
@@ -292,7 +313,6 @@ background: rgba(248,249,250,0.88);
             };
 
             try {
-                // We hit the user's localhost port directly from their own browser frame!
                 const response = await fetch('http://localhost:11434/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -308,7 +328,6 @@ background: rgba(248,249,250,0.88);
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n/g, '<br>');
 
-                // Enable expand after first question
                 const btn = document.getElementById('expandChatBtn');
                 if (btn) btn.disabled = false;
 
@@ -345,71 +364,65 @@ background: rgba(248,249,250,0.88);
 
         window.onload = function() {
             loadProfileData();
-
             const chatInput = document.getElementById('chatInput');
             const btn = document.getElementById('expandChatBtn');
             if (btn) {
                 btn.dataset.enabled = '0';
             }
 
-            // Binds the "Enter" key to submit the prompt instantly
             chatInput.addEventListener("keydown", function(event) {
                 if (event.key === "Enter") {
                     event.preventDefault();
                     fireQueryToAI();
                 }
             });
-
         };
 
-        // Trigger PDF export from anywhere (must be global, not inside window.onload)
-    async function triggerPdfExport() {
-        console.log("PDF Export Triggered!");
+        async function triggerPdfExport() {
+            console.log("PDF Export Triggered!");
+            const verdictText = document.getElementById("verdictBanner").innerText || "";
+            const cleanVerdict = verdictText.replace("UNDERWRITING DECISION: ", "").split("\n")[0].trim();
 
-        const verdictText = document.getElementById("verdictBanner").innerText || "";
-        const cleanVerdict = verdictText.replace("UNDERWRITING DECISION: ", "").split("\n")[0].trim();
-
-        const payload = {
-            metrics: {
-                name: document.getElementById("lblComp").innerText,
-                score: document.getElementById("lblScore").innerText,
-                percentage: document.getElementById("lblPct").innerText,
-                verdict: cleanVerdict,
-                inputs: {
-                    gst: document.getElementById("gstDelay").value,
-                    upi: document.getElementById("upiVar").value,
-                    staff: document.getElementById("staffDelta").value,
-                    power: document.getElementById("powerDelta").value
+            const payload = {
+                metrics: {
+                    name: document.getElementById("lblComp").innerText,
+                    score: document.getElementById("lblScore").innerText,
+                    percentage: document.getElementById("lblPct").innerText,
+                    verdict: cleanVerdict,
+                    inputs: {
+                        gst: document.getElementById("gstDelay").value,
+                        upi: document.getElementById("upiVar").value,
+                        staff: document.getElementById("staffDelta").value,
+                        power: document.getElementById("powerDelta").value
+                    }
                 }
-            }
-        };
+            };
 
-        try {
-            const response = await fetch('/export_pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const response = await fetch('/export_pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = downloadUrl;
-                a.download = `Sanction_Memo_${payload.metrics.name.replace(/ /g, "_")}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(downloadUrl);
-            } else {
-                alert("Backend failed to package structured underwriting document.");
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = downloadUrl;
+                    a.download = `Sanction_Memo_${payload.metrics.name.replace(/ /g, "_")}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                } else {
+                    alert("Backend failed to package structured underwriting document.");
+                }
+            } catch (error) {
+                console.error("Export Error:", error);
+                alert("Network error while generating PDF.");
             }
-        } catch (error) {
-            console.error("Export Error:", error);
-            alert("Network error while generating PDF.");
         }
-    };
-
     </script>
 </body>
 </html>
