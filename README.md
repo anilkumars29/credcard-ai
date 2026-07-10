@@ -159,6 +159,56 @@ CredCard AI combines:
 
 ---
 
+## System Requirements & Configuration
+
+> **CRITICAL:** For the decentralized edge architecture to initialize correctly, your local deployment node must satisfy the following prerequisites. The project will not run correctly without these requirements.
+
+| Requirement | Configuration |
+|---|---|
+| **Python Runtime Environment** | Python 3.10 or above must be installed and globally registered to your system environment paths. |
+| **Localized AI Orchestration Node** | Ollama framework engine must be running natively on the host machine. Download via [ollama.com](https://ollama.com). |
+| **Target LLM Footprint** | The `llama3.2` (3B) model blueprint must be actively pulled and compiled inside your local Ollama repository core. |
+| **Global Access Permissions** | The global user environment variable `OLLAMA_ORIGINS="*"` must be explicitly set and active to permit the cloud dashboard to bridge requests to your machine's local loopback network framework. |
+
+### Basic Commands To Run The Platform
+
+Follow this exact terminal pipeline sequence to boot the entire platform ecosystem locally:
+
+#### 1. Initialize Cross-Origin Permissions & Model Core
+
+Run this inside an administrative PowerShell window to allow cross-origin connectivity and pull the required intelligence model:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('OLLAMA_ORIGINS', '*', 'User')
+ollama pull llama3.2
+```
+
+> **Note:** Ensure your Ollama desktop instance is restarted from your Windows system tray after injecting the variable flag.
+
+#### 2. Enter Workspace & Activate Sandbox Environment
+
+```powershell
+cd credcard-ai
+.\venv\Scripts\Activate.ps1
+```
+
+#### 3. Install Module Wrappers & Launch Framework Core
+
+```powershell
+pip install -r requirements.txt
+python app_flask.py
+```
+
+#### 4. Open Web Platform Interface
+
+Launch any standard internet browser framework and navigate directly to:
+
+```text
+http://127.0.0.1:5000
+```
+
+---
+
 ## For Technical Readers
 
 The full engineering blueprint (architecture, synchronization patterns, and verification mechanisms) is implemented across decoupled execution models. In short:
